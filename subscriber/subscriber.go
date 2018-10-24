@@ -4,40 +4,56 @@ package main
 import (
 	"log"
 	"runtime"
-	
+	//"strconv"
 	"github.com/nats-io/go-nats"
-	"encoding/json"
+	//"encoding/json"
 )
 
 type Sensors struct {
-	name string
-	timestamp int64
-	value float64
+	Name string
+	Timestamp string
+	Value string
  }
 
  type List struct {
-	 sensor1 Sensors
-	 sensor2 Sensors
-	 sensor3 Sensors
+	Sensor1 *Sensors
+	Sensor2 *Sensors
+	Sensor3 *Sensors
  }
 
 
 func main() {
 	// Create server connection
 	natsConnection, _ := nats.Connect(nats.DefaultURL)
+	c, _ := nats.NewEncodedConn(natsConnection, nats.JSON_ENCODER)
+	
 	log.Println("Connected to " + nats.DefaultURL)
-
-	var list List
+	//var sensor2 Sensors
+	//log.Printf("Received message %+v\n", sensor2 )
+	//var x int
+	
+	var list1 *List
 
 	// Subscribe to subject
 	log.Printf("Subscribing to subject 'foo'\n")
-	natsConnection.Subscribe("foo", func(msg *nats.Msg) {
-		json.Unmarshal(msg.Data,&list.sensor1)
+	c.Subscribe("foo", func(list *List) {
+		//json.Unmarshal(msg.Data,&list.sensor1)
 		// Handle the message
-		log.Printf("Received message %s %d %f\n", list.sensor1.name, list.sensor1.timestamp, list.sensor1.value )
+		log.Printf("Received message\n %+v\n %+v\n %+v\n", list.Sensor1, list.Sensor2, list.Sensor3 )
 		//log.Printf("Received message %s %d %f\n", list.sensor2.name, list.sensor2.timestamp, list.sensor2.value )
 		//log.Printf("Received message %s %d %f\n", list.sensor3.name, list.sensor3.timestamp, list.sensor3.value )
+		list1 = list;
+
 	})
+
+	connectSensorDb()
+	insertSensortable(list1)
+
+
+	
+
+
+
 
 	// Keep the connection alive
 	runtime.Goexit()
